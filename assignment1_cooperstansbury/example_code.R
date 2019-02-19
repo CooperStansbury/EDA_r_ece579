@@ -1,12 +1,12 @@
 
 
-Hitters<-read.csv("~/Documents/ECE_579_W2019/Hitters.csv")
+Hitters<-read.csv("data/Hitters.csv")
 #The following two commands list the names of variables in the data file
 #and the dimension of the data
 names(Hitters)
 dim(Hitters)
 
-# The following command finds the number of time the Salary field is empty, 
+# The following command finds the number of time the Salary field is empty,
 # given as na, then the following line removes those entries from the working
 # data set.  Note:  this is a common practice but one must be aware of
 # the fact of throwing away some amount of otherwise good data
@@ -14,7 +14,7 @@ dim(Hitters)
 # is low, aroung 5% is a good rule of thumb.
 # Alternatives exist if this condition is not met
 # These techniques are referred to by the name "imputation"
-# Several methods of imputing missing data,which means making an educated 
+# Several methods of imputing missing data,which means making an educated
 # guess on the value of missing data based on "similar" data in the data set
 # R has several nice packages that do imputation
 
@@ -37,8 +37,8 @@ nvmax<-3
 # in the data set.  Several methods exist:  use all subsets of a
 # given size ( choosing among all possible subset), or to select
 # variables that produce the best improvement starting either
-# from one variable, then adding other in (forward selection), 
-# or start with all variables and 
+# from one variable, then adding other in (forward selection),
+# or start with all variables and
 # remove one at a time ( backward selection)
 # The "all subset of size k" becomes computationally too demanding
 # once k > 30 or 40, so the latter techniques are used most often
@@ -59,7 +59,7 @@ reg.summary=summary(regfit.full)
 
 # There are several standard ways of calculating a "measure of fit"
 # or how well the model predicts the response, or dependent variable
-# based on the generated model.  These include "R-Squared", 
+# based on the generated model.  These include "R-Squared",
 # "Adjusted R-Squared", "Mallow's Cp", and "Bayesian Information Criteris (BIC)"
 #  No one measure is always better than the others, so it is wise to look
 # at all of the.
