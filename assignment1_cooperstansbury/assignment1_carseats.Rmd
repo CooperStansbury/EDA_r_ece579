@@ -1,9 +1,12 @@
 ---
 title: "Carseats R Notebook"
+author: "Cooper M. Stansbury (63919844)"
 output:
   html_notebook:
-    code_folding: none
+    df_print: paged
+    fig_caption: yes
     highlight: pygments
+    number_sections: yes
     theme: sandstone
 editor_options:
   chunk_output_type: inline
@@ -12,23 +15,23 @@ Execute: *Cmd+Shift+Enter*.
 New Chunk: *Cmd+Option+I*.
 Preview: *Cmd+Shift+K*
 Notes: The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+# Introduction
+
 
 ## Configuration
 
 ```{r}
 library(leaps)
-library(modelr)
-library(mgcv)
+library(caret)
 library(ggplot2)
+library(mgcv)
 library(DataExplorer)
 library(dplyr)
-library(GGally)
 library(ggExtra)
-library(caret)
-library(reshape2)
 library(RColorBrewer)
 library(plotly)
 library(corrplot)
+library(htmltools)
 ```
 
 ## System Information
@@ -40,7 +43,7 @@ sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
 ```
 
 # Data
-First we inspect the raw records using `bash`: 
+First we inspect the raw records using `bash`. Always a good idea to look at things before you mash 'em into an IDE.
 
 ```{bash}
 head -n 5 data/Carseats_org.csv
@@ -68,13 +71,12 @@ nums[sample(nrow(nums), 10), ]
 cats[sample(nrow(cats), 10), ]
 ```
 
-Let's get quick summaries of each:
+Let's get some quick summaries of each:
 
 ```{r}
+print('Numeric Summaries')
 summary(nums)
-```
-
-```{r}
+print('Categorical Summaries')
 summary(cats)
 ```
 
@@ -167,7 +169,7 @@ scaled.nums %>%
             ggtitle('Distributions of Continous Variables (scaled)') +
 
             facet_wrap(~ key, scales = "free") +
-            geom_histogram(fill=I("orange"), col=I("black")) +
+            geom_histogram(fill=I("orange"), col=I("black"), bins = 50) +
 
             facet_wrap(~ key, scales = "free") +
             geom_density(color="blue", fill='light blue', alpha = 0.4)
@@ -191,32 +193,38 @@ scaled.nums %>%
                                   xaxis=list(title='Variable'),
                                   autosize=FALSE,
                                   width=900,
-                                  height=900)
+                                  height=500)
 ```
 
 ## Scatterplots
 
-Here we plot all numeric variables against Sales (scaled). This allows us to investigate possible linear relationships between that variable and Sales. As shown below, only 'Price' appears to have a linear relationshop worth investigating.
+Here we plot all numeric variables against Sales (scaled). This allows us to investigate possible linear relationships between that variable and Sales. As shown below, only 'Price' appears to have a linear relationshop worth investigating. This took me so long to figure out. 
 
 ```{r}
-scaled.nums %>%
-    tidyr::gather(-Sales, key = "var", value = "value") %>%
-    split(.$var) %>%
-       lapply(function(d) plot_ly(d, x=~value, y=~Sales, 
-                mode = 'markers', 
-                type = 'scatter',
-                colors = 'Set3',
-                size = ~Sales^2,
-                marker = list(line = list(
-                color = 'black',
-                width = 2)),
-                name=~var)) %>%
-                      subplot(nrows=7, shareY=TRUE)  %>%
-                            layout(title = "Scatterplot Numeric vs Sales (scaled)<br>Size=Sales^2",
-                                   autosize=FALSE,
-                                   width=900,
-                                   height=1500,
-                                   yaxis=list(title='Sales'))
+
+numeric.scatterplots <- htmltools::tagList()
+count = 1
+
+for (i in names(scaled.nums[,-1])) {
+  
+  numeric.scatterplots[[count]] <- plot_ly(scaled.nums, x=scaled.nums[,i], y=scaled.nums$Sales,
+                    colors = 'RdYlGn',
+                    mode = 'markers',
+                    type = 'scatter',
+                    size = scaled.nums$Sales^2,
+                    color = scaled.nums$Sales,
+                    marker = list(line = list(color = 'black',width = 2)),
+                    name=paste(i)) %>%
+          layout(title = paste(i, "vs Sales (scaled)<br>Size=Sales^2"),
+                               yaxis=list(title='Sales'),
+                               xaxis=list(title=i),
+                               showlegend = FALSE)
+  
+  count = count + 1
+  
+}
+
+numeric.scatterplots
 
 ```
 
@@ -228,44 +236,60 @@ fit.Age <- lm(Sales ~ Age, data = scaled.nums)
 fit.CompPrice <- lm(Sales ~ CompPrice, data = scaled.nums)
 fit.Price <- lm(Sales ~ Price, data = scaled.nums)
 
-p1 <-  plot_ly(scaled.nums, 
-               x = ~Population,
-               name = 'Population vs Sales Regression Line') %>% 
-                   add_markers(y = ~Sales,
-                               name = 'Population vs Sales Observations') %>% 
-                                    add_lines(x = ~Population, 
-                                              y = fitted(fit.Pop)) 
-p2 <-  plot_ly(scaled.nums, 
-               x = ~Age,
-               name = 'Age vs Sales Regression Line') %>% 
-                   add_markers(y = ~Sales,
-                               name = 'Age vs Sales Observations') %>% 
-                                    add_lines(x = ~Age, 
-                                              y = fitted(fit.Age)) 
+regression.scatterplots <- htmltools::tagList()
 
-p3 <-  plot_ly(scaled.nums, 
-               x = ~CompPrice,
-               name = 'CompPrice vs Sales Regression Line') %>% 
-                   add_markers(y = ~Sales,
-                               name = 'CompPrice vs Sales Observations') %>% 
-                                    add_lines(x = ~CompPrice, 
-                                              y = fitted(fit.CompPrice)) 
+regression.scatterplots[[1]] <-  plot_ly(scaled.nums, 
+          x = ~Population,
+          name = 'Population vs Sales Regression Line') %>% 
+              add_markers(y = ~Sales,
+                    name = 'Population vs Sales Observations') %>% 
+                            add_lines(x = ~Population, 
+                                  y = fitted(fit.Pop)) %>%
+                                        layout(title = "Population vs Sales",
+                                               yaxis=list(title='Sales',
+                                               xaxis=list(title='Population')),
+                                               showlegend = FALSE)
+                                              
+           
 
-p4 <-  plot_ly(scaled.nums, 
-               x = ~Price,
-               name = 'Price vs Sales Regression Line') %>% 
-                   add_markers(y = ~Sales,
-                               name = 'Price vs Sales Observations') %>% 
-                                    add_lines(x = ~Price, 
-                                              y = fitted(fit.Price)) 
+regression.scatterplots[[2]] <-  plot_ly(scaled.nums, 
+          x = ~Age,
+          name = 'Age vs Sales Regression Line') %>% 
+              add_markers(y = ~Sales,
+                    name = 'Age vs Sales Observations') %>% 
+                            add_lines(x = ~Age, 
+                                  y = fitted(fit.Age)) %>%
+                                        layout(title = "Age vs Sales",
+                                               yaxis=list(title='Sales',
+                                               xaxis=list(title='Age')),
+                                               showlegend = FALSE)
 
-subplot(p1, p2, p3, p4, nrows=2, shareY=TRUE) %>%
-    layout(title = "Scatterplot Numeric vs Sales (scaled) <br> With Regression Lines",
-           autosize=FALSE,
-           width=1000,
-           height=700,
-           yaxis=list(title='Sales'))
+regression.scatterplots[[3]] <-  plot_ly(scaled.nums, 
+          x = ~CompPrice,
+          name = 'CompPrice vs Sales Regression Line') %>% 
+              add_markers(y = ~Sales,
+                    name = 'CompPrice vs Sales Observations') %>% 
+                            add_lines(x = ~CompPrice, 
+                                  y = fitted(fit.CompPrice)) %>%
+                                        layout(title = "CompPrice vs Sales",
+                                               yaxis=list(title='Sales',
+                                               xaxis=list(title='CompPrice')),
+                                               showlegend = FALSE)
 
+regression.scatterplots[[4]] <-  plot_ly(scaled.nums, 
+          x = ~Price,
+          name = 'Price vs Sales Regression Line') %>% 
+              add_markers(y = ~Sales,
+                    name = 'Price vs Sales Observations') %>% 
+                            add_lines(x = ~Price, 
+                                  y = fitted(fit.Price)) %>%
+                                        layout(title = "Price vs Sales",
+                                               yaxis=list(title='Sales',
+                                               xaxis=list(title='Price')),
+                                               showlegend = FALSE)
+
+
+regression.scatterplots
 ```
 
 Let's compare the slopes:
@@ -284,8 +308,7 @@ scaled.nums %>%
             
     layout(title = "Regression Lines vs Sales (scaled)",
            autosize=FALSE,
-           width=700,
-           height=500,
+           width=900,
            yaxis=list(title='Sales'),
            xaxis=list(title='Scaled Numeric Variable'))
 ```
@@ -317,68 +340,60 @@ First, let's create a dataframe that we can use:
 categorical.by.sales = cbind(Sales = scaled.nums$Sales, cats)
 ```
 
-Let's try 'em all at once. This works, but I don't manage the colors very well. 
+Here we can see all categorical by Sales. We suspected that 'ShelveLoc' would be important based on one of the early scatterplots. It seems that this is the case.
 
 ```{r}
-colr = brewer.pal(9, "Set1")
 
-categorical.by.sales %>%
-    tidyr::gather(-Sales, key = "var", value = "value") %>%
-    split(.$var) %>%
-       lapply(function(d) plot_ly(d, x=~paste(var, '<br>' , value), y=~Sales,
-                type = "box", 
-                boxpoints = "all", 
-                jitter = .2,
-                pointpos = 0,
-                color =~paste(var, ":", value),
-                colors = sample(colr, length(unique(d$value))))) %>%
-#                 colors = "Set1")) %>%
-                      subplot(shareY = TRUE, nrows=3)  %>%
-                            layout(title = "Categorical Variable Distributions vs Sales (scaled)", 
+categorical.boxplots <- htmltools::tagList()
+count = 1
+
+for (i in names(categorical.by.sales[,-1])) {
+  
+  categorical.boxplots[[count]] <- plot_ly(categorical.by.sales, x=categorical.by.sales[,i], y=categorical.by.sales$Sales,
+                        type = "box", 
+                        boxpoints = "all",
+                        jitter = .2,
+                        pointpos = 0,
+                        color =categorical.by.sales[,i],
+                        colors='Set1', 
+                        name=paste(i)) %>%
+                            layout(title = paste(i, "vs Sales (scaled)"),
+                                  showlegend = TRUE,
                                   yaxis=list(title='Sales Standard Deviation'),
-                                  xaxis=list(title=''),
-                                  autosize=FALSE,
-                                  width=900,
-                                  height=1500)
+                                  xaxis=list(title=i))
+  
+  count = count + 1
+  
+}
+
+categorical.boxplots
 ```
 
-I run these each separately and get much nicer plots. 
-
-```{r}
-categorical.by.sales %>%               
-    plot_ly(x = ~US, y = ~Sales,
-        split = ~US,
-        type = 'violin',
-        box = list(visible = TRUE),
-        meanline = list(visible = TRUE)) %>% 
-              layout(xaxis = list(title = "US"),
-                     yaxis = list(title = "Sales",zeroline = FALSE))
-
-```
-
-```{r}
-categorical.by.sales %>%               
-    plot_ly(x = ~Urban, y = ~Sales,
-        split = ~Urban,
-        type = 'violin',
-        box = list(visible = TRUE),
-        meanline = list(visible = TRUE)) %>% 
-              layout(xaxis = list(title = "Urban"),
-                     yaxis = list(title = "Sales",zeroline = FALSE))
-```
-
-Now this is interesting. We suspected that 'ShelveLoc' would be important based on one of the early scatterplots. It seems that this is the case.
+Here's the same thing, but more musically:
 
 ```{r}
 
-categorical.by.sales %>%               
-    plot_ly(x = ~ShelveLoc, y = ~Sales,
-        split = ~ShelveLoc,
-        type = 'violin',
-        box = list(visible = TRUE),
-        meanline = list(visible = TRUE)) %>% 
-              layout(xaxis = list(title = "ShelveLoc"),
-                     yaxis = list(title = "Sales",zeroline = FALSE))
+categorical.violins <- htmltools::tagList()
+count = 1
+
+for (i in names(categorical.by.sales[,-1])) {
+  
+  categorical.violins[[count]] <- plot_ly(categorical.by.sales, x=categorical.by.sales[,i], y=categorical.by.sales$Sales,
+                        split = categorical.by.sales[,i],
+                        type = 'violin',
+                        colors='Set1', 
+                        name=paste(i),
+                        box = list(visible = TRUE),
+                        meanline = list(visible = TRUE)) %>% 
+                            layout(xaxis = list(title = "US"),
+                                yaxis = list(title = "Sales",zeroline = FALSE))
+
+  
+  count = count + 1
+  
+}
+
+categorical.violins
 ```
 
 # Linear Regression
@@ -416,7 +431,9 @@ Here we define a new model with some interaction terms:
 
 ```{r}
 interaction.lm <- lm(Sales~. + Income*Advertising + Income*CompPrice + Price*Age, data=scaled.merged)
-summary(interaction.lm)
+interaction.summary <- summary(interaction.lm)
+
+print(interaction.summary)
 ```
 
 ## Variable Significance
@@ -448,7 +465,16 @@ Use the regsubsets command in “leaps” to do the full model ( do NOT specify 
 
 
 ```{r}
+scaled.merged.slim <- scaled.merged[ , -which(names(scaled.merged) %in% c("US","Urban"))]
 
+interaction.lm.2 <- lm(Sales~. + Income*Advertising + Income*CompPrice + Income*Age, data=scaled.merged.slim)
+interaction.summary <- summary(interaction.lm.2)
+
+print(interaction.summary$r.squared)
+
+print(names(interaction.summary))
+# plot(interaction.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+# plot(interaction.summary$adjr2,xlab="Number of Variables",ylab="Adjusted RSq",type="l")
 ```
 
 8.  Use the following model selection criteria to determine which of the resulting models is “best” according to RSS, adjusted R squared, Mallow’s Cp, and BIC.
