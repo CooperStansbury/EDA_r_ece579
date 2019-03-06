@@ -35,7 +35,7 @@ sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
 I load the data into `r`, and drop the "ID" column. 
 
 ```{r}
-carseats <- read.csv("../data/Carseats_org.csv", header = T, stringsAsFactors = T)
+carseats <- read.csv("data/Carseats_org.csv", header = T, stringsAsFactors = T)
 
 drops <- c("X")
 carseats <- carseats[ , !(names(carseats) %in% drops)]
