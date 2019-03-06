@@ -1,13 +1,14 @@
 ---
 title: "Carseats R Notebook"
+
+knit: (function(input_file, encoding) {
+  out_dir <- '../docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+
 author: "Cooper M. Stansbury (63919844)"
-output:
-  html_notebook:
-    df_print: paged
-    fig_caption: yes
-    highlight: pygments
-    number_sections: yes
-    theme: sandstone
+
 editor_options:
   chunk_output_type: inline
 ---
@@ -41,16 +42,10 @@ sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
 ```
 
 # Data
-First we inspect the raw records using `bash`. Always a good idea to look at things before you mash 'em into an IDE.
-
-```{bash}
-head -n 5 data/Carseats_org.csv
-```
-
-Now I load the data into `r`, and drop the "ID" column. 
+I load the data into `r`, and drop the "ID" column. 
 
 ```{r}
-carseats <- read.csv("data/Carseats_org.csv", header = T, stringsAsFactors = T)
+carseats <- read.csv("../data/Carseats_org.csv", header = T, stringsAsFactors = T)
 
 drops <- c("X")
 carseats <- carseats[ , !(names(carseats) %in% drops)]
