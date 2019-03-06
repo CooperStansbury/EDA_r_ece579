@@ -6,7 +6,7 @@ navbar:
   - text: "Home"
    href: index.html
   - text: "Carseats"
-   href: carseats.html
+   href: carseats2.html
 output:
   html_document:
  theme: cosmo
