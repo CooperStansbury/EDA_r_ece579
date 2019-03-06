@@ -4,9 +4,10 @@ output:
   html_document:
     df_print: paged
 ---
-
 # Introduction
 Here is my analysis of `data/Carseats_org.csv`. 
+
+https://resources.github.com/whitepapers/github-and-rstudio/
 
 ## Configuration
 

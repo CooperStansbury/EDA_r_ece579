@@ -3,6 +3,8 @@ title: "Western Collaborative Group Study R Nortebook"
 output: html_notebook
 ---
 
+https://resources.github.com/whitepapers/github-and-rstudio/
+
 #Introduction
 
 ```{r}
