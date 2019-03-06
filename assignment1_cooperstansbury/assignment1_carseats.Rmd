@@ -2,6 +2,8 @@
 title: "Carseats R Notebook"
 author: "Cooper M. Stansbury (63919844)"
 output:
+  html_document:
+    df_print: paged
   html_notebook:
     df_print: paged
     fig_caption: yes
@@ -11,20 +13,17 @@ output:
 editor_options:
   chunk_output_type: inline
 ---
-Execute: *Cmd+Shift+Enter*. 
-New Chunk: *Cmd+Option+I*.
-Preview: *Cmd+Shift+K*
-Notes: The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
-# Introduction
 
+# Introduction
+Here is my analysis of `data/Carseats_org.csv`. 
 
 ## Configuration
 
 ```{r}
 library(leaps)
+library(stringr)
 library(caret)
 library(ggplot2)
-library(mgcv)
 library(DataExplorer)
 library(dplyr)
 library(ggExtra)
@@ -32,6 +31,7 @@ library(RColorBrewer)
 library(plotly)
 library(corrplot)
 library(htmltools)
+library(MASS)
 ```
 
 ## System Information
@@ -59,7 +59,7 @@ carseats <- carseats[ , !(names(carseats) %in% drops)]
 head(carseats, 10)
 ```
 
-Here I create two new dataframes to manage numeric and categorical data.
+Here I create two new data frames to manage numeric and categorical data.
 
 ```{r}
 # get vectors of continuous and categorical cols
@@ -97,11 +97,33 @@ print(paste('Number of Numeric Columns:', ncol(nums)))
 print(paste('Number of Categorical Columns:', ncol(cats)))
 ```
 
+```{r}
+dim(carseats)
+dim(nums)
+dim(cats)
+```
+
+
 Here's a quick way to examine general properties of the data:
 
 ```{r}
 DataExplorer::introduce(data=carseats)
 ```
+
+Finally, I want to look at the first and last rows of the data set. Just to be safe:
+
+```{r}
+head(carseats, 2)
+tail(carseats, 2)
+
+head(nums, 2)
+tail(nums, 2)
+
+head(cats, 2)
+tail(cats, 2)
+```
+
+
 
 # Numeric Plotting
 I start out with a few general scatter plots.
@@ -143,13 +165,14 @@ plot_ly(data=carseats,
 ```
 
 # Normalization
-I choose to normalize the numeric data in order to be able to plot each variable on the same scale. This will allow me to investigate the variation of each predictor relaticve to Sales.
+I choose to normalize the numeric data in order to be able to plot each variable on the same scale. This will allow me to investigate the variation of each predictor relative to Sales.
 
 ```{r}
 preObj <- preProcess(nums, method=c("center", "scale"))
 scaled.nums <- predict(preObj, nums)
 
-head(scaled.nums)
+head(scaled.nums, 2)
+tail(scaled.nums, 2)
 ```
 
 ```{r}
@@ -198,7 +221,7 @@ scaled.nums %>%
 
 ## Scatterplots
 
-Here we plot all numeric variables against Sales (scaled). This allows us to investigate possible linear relationships between that variable and Sales. As shown below, only 'Price' appears to have a linear relationshop worth investigating. This took me so long to figure out. 
+Here we plot all numeric variables against Sales (scaled). This allows us to investigate possible linear relationships between that variable and Sales. As shown below, only 'Price' appears to have a linear relationship worth investigating. This took me so long to figure out. 
 
 ```{r}
 
@@ -228,7 +251,7 @@ numeric.scatterplots
 
 ```
 
-By adding naive regression lines to a few scatterplots we can confirm our suspicions:
+By adding naive regression lines to a few scatter plots we can confirm our suspicions:
 
 ```{r}
 fit.Pop <- lm(Sales ~ Population, data = scaled.nums)
@@ -335,12 +358,13 @@ layout(s, showlegend = FALSE, autosize=FALSE,
 ```
 
 # Categorical Plotting
-First, let's create a dataframe that we can use:
+First, let's create a data frame that we can use:
 ```{r}
 categorical.by.sales = cbind(Sales = scaled.nums$Sales, cats)
+str(categorical.by.sales)
 ```
 
-Here we can see all categorical by Sales. We suspected that 'ShelveLoc' would be important based on one of the early scatterplots. It seems that this is the case.
+Here we can see all categorical by Sales. We suspected that 'ShelveLoc' would be important based on one of the early scatter plots. It seems that this is the case.
 
 ```{r}
 
@@ -398,14 +422,23 @@ categorical.violins
 
 # Linear Regression
 
-First, let's merge the data set into a single dataframe
+First, let's merge the data set into a single data frame
 ```{r}
-scaled.merged <- merge(scaled.nums, categorical.by.sales, by="Sales")
 
-head(scaled.merged)
+scaled.merged <- cbind(categorical.by.sales[,-1], scaled.nums)
+str(scaled.merged)
 ```
 
-First, let's look at some things that may give us trouble. Luckily it looks like the only serious correlation is with our dependent variable.
+```{r}
+head(nums, 2)
+tail(nums, 2)
+
+head(scaled.merged, 2)
+tail(scaled.merged, 2)
+```
+
+
+First, let's look at some things that may give us trouble. Luckily it looks like the only serious correlation is with our dependent variable. We'll want to watch the 'Price' vs 'CompPrice' relationship.
 
 ```{r}
 res <- cor(scaled.nums)
@@ -418,8 +451,39 @@ It appears that residuals are roughly symmetrical around 0. That's strange. Most
 
 ```{r}
 simple.lm <- lm(Sales~., data=scaled.merged)
-summary(simple.lm)
+simple.summary <- summary(simple.lm)
+
+print(simple.summary)
 ```
+
+## Linear Models and Subsets
+
+Let's do the same thing, but control the subsets using `leaps`
+
+```{r}
+regfit.full=regsubsets(Sales~., data=scaled.merged, nvmax=5)
+reg.summary=summary(regfit.full)
+
+print(reg.summary)
+```
+
+We'll just take code straight from the example on Canvas...
+
+```{r}
+par(mfrow=c(2,2))
+plot(reg.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted RSq",type="l")
+plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type='l')
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type='l')
+```
+
+```{r}
+plot(regfit.full,scale="r2")
+plot(regfit.full,scale="adjr2")
+plot(regfit.full,scale="Cp")
+plot(regfit.full,scale="bic")
+```
+
 
 # Interaction Terms
 
@@ -436,81 +500,142 @@ interaction.summary <- summary(interaction.lm)
 print(interaction.summary)
 ```
 
-## Variable Significance
+```{r}
+interaction.lm.subsets <- regsubsets(Sales~. + Income*Advertising + Income*CompPrice + Price*Age, 
+                                     data=scaled.merged, nvmax=5)
 
-6.  Which variables ( and interaction pairs ) are significant ?  Do you find anything surprising or counterintuitive in the results?  Describe any response variable or lack of response that seems surprising.
+interaction.subsets.summary <- summary(interaction.lm.subsets)
+
+print(interaction.subsets.summary)
+```
+
+
+## Variable Significance
+Below we print the coefficients for the 5th model using the default model selection criteria. All coefficients are relatively small, as we would expect from the EDA above. This pretty much confirms what I would have guessed by looking at the data against sales. We still want to watch out for confounding between 'Price' and 'CompPrice.'
 
 
 ```{r}
-
+coef(interaction.lm.subsets, 5)
 ```
 
-7.  Repeat the above but using the “leaps” package to perform subset selection, using the full model using ONLY the following variables:
+## Second Interaction Model
 
-Price
-Population
-CompPrice
-Income
-Education
-Age
-Advertising
-ShelveLoc
-
-Plus the following interaction term:
-Income and Age
-Income and Advertising
-Income and CompPrice
-
-Use the regsubsets command in “leaps” to do the full model ( do NOT specify really.big=T as it will require a long time to complete, along with forward and backward subset selection.   Use the R file, Subset_select.R as a guide for syntax.
-
+First, drop columns unneeded from analysis:
 
 ```{r}
 scaled.merged.slim <- scaled.merged[ , -which(names(scaled.merged) %in% c("US","Urban"))]
-
-interaction.lm.2 <- lm(Sales~. + Income*Advertising + Income*CompPrice + Income*Age, data=scaled.merged.slim)
-interaction.summary <- summary(interaction.lm.2)
-
-print(interaction.summary$r.squared)
-
-print(names(interaction.summary))
-# plot(interaction.summary$rss,xlab="Number of Variables",ylab="RSS",type="l")
-# plot(interaction.summary$adjr2,xlab="Number of Variables",ylab="Adjusted RSq",type="l")
 ```
 
-8.  Use the following model selection criteria to determine which of the resulting models is “best” according to RSS, adjusted R squared, Mallow’s Cp, and BIC.
 
-The result of the regressions is a model object, so you can query the proper coefficient of the model to determine which model, of the multiple models fit, produces the best metric.
+A few hyper parameters we'd like to be consistent for all models
 
-Create a  table, or simply list, for the full model, and forward and backward selection, which model # is the best, then write out the model, that is put the model in the form y=intercept + coefficient*variable, for the best model using the BIC measure.  NOTE:  these may be the same model, or may differ slightly. 
+```{r}
+nvmax <- 3
+```
 
+## Forward Selection:
 
+```{r}
+interaction.subset.fwd <- regsubsets(Sales~. + Income*Advertising + Income*CompPrice + Income*Age,
+                                     data=scaled.merged.slim, 
+                                     nvmax = nvmax,
+                                     method="forward")
+
+fwd.subset.summary <- summary(interaction.subset.fwd)
+
+coef(interaction.subset.fwd, 1:nvmax)
+```
+
+## Backward Selection:
+
+This is really strange. I can't seem to find any documentation about this, but it appears that this model is actually 'forward.'
+
+```{r}
+interaction.subset.bk <- regsubsets(Sales~. + Income*Advertising + Income*CompPrice + Income*Age,
+                                     data=scaled.merged.slim, 
+                                     nvmax = nvmax,
+                                     method="backward")
+
+bk.subset.summary <- summary(interaction.subset.bk)
+
+coef(interaction.subset.bk, 1:nvmax)
+```
+
+## Exhasutive
+
+```{r}
+interaction.subset.ex <- regsubsets(Sales~. + Income*Advertising + Income*CompPrice + Income*Age,
+                                     data=scaled.merged.slim, 
+                                     nvmax = nvmax,
+                                     method="exhaustive")
+
+ex.subset.summary <- summary(interaction.subset.ex)
+coef(interaction.subset.ex, 1:nvmax)
+```
+
+This is a list that may come in handy.
+
+```{r}
+model.list = list(list("Forward", interaction.subset.fwd, fwd.subset.summary), 
+                  list("Backward", interaction.subset.bk, bk.subset.summary), 
+                  list("Exhaustive", interaction.subset.ex, ex.subset.summary))
+```
+
+# Evaluation Metric Plotting
+
+It is interesting to see that each model selected the same variables, in the same order.
+
+```{r}
+par(mfrow=c(2,2))
+plot(fwd.subset.summary$rss,xlab="Number of Variables (forward)",ylab="RSS",type="l")
+plot(fwd.subset.summary$adjr2,xlab="Number of Variables (forward)",ylab="Adjusted RSq",type="l")
+plot(fwd.subset.summary$cp,xlab="Number of Variables (forward)",ylab="Cp",type='l')
+plot(fwd.subset.summary$bic,xlab="Number of Variables (forward)",ylab="BIC",type='l')
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(bk.subset.summary$rss,xlab="Number of Variables (backward)",ylab="RSS",type="l")
+plot(bk.subset.summary$adjr2,xlab="Number of Variables (backward)",ylab="Adjusted RSq",type="l")
+plot(bk.subset.summary$cp,xlab="Number of Variables (backward)",ylab="Cp",type='l')
+plot(bk.subset.summary$bic,xlab="Number of Variables (backward)",ylab="BIC",type='l')
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(ex.subset.summary$rss,xlab="Number of Variables (exhaustive)",ylab="RSS",type="l")
+plot(ex.subset.summary$adjr2,xlab="Number of Variables (exhaustive)",ylab="Adjusted RSq",type="l")
+plot(ex.subset.summary$cp,xlab="Number of Variables (exhaustive)",ylab="Cp",type='l')
+plot(ex.subset.summary$bic,xlab="Number of Variables (exhaustive)",ylab="BIC",type='l')
+```
+
+# Model Equations
+
+Here we print the final equations for each model. Not, they are all the same.
 
 ```{r}
 
+for (mod.obj in model.list) {
+  mod.name <- mod.obj[[1]]
+  best.bic <- min(mod.obj[[3]]$bic)
+  mod.num <- which.min(mod.obj[[3]]$bic)
+  mod.cc <- coef(mod.obj[[2]], mod.num)
+  
+  mod.equation.format <- paste("Y =", paste(round(mod.cc[1],2), 
+                      paste(round(mod.cc[-1],2), 
+                      names(mod.cc[-1]), 
+                      sep=" * ", collapse=" + "), 
+                      sep=" + "), "+ e")
+  
+  print(paste("Model Selection Method: ",mod.name))
+  print(paste("Min BIC:", best.bic))
+  print(paste("Model Number: ", mod.num))
+  print(paste("Model Equation: ", mod.equation.format))
+  print("")
+  
+}
 ```
 
-```{r}
 
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
-
-```{r}
-
-```
 
 
