@@ -1,8 +1,6 @@
 ---
-title: "index.md"
+title: "Assignment 1"
 output: html_document
 ---
 
-# Welcome
-
-This is assignment 1 for ECE579. If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/)
+This is assignment 1 for ECE579. If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/).
