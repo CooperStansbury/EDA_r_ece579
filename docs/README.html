@@ -305,7 +305,44 @@ $(document).ready(function () {
 
 <div id="ece579" class="section level1">
 <h1>ECE579</h1>
-<p>ECE579 Coursework</p>
+<p>This is the working directory for the website found here:</p>
+<p><a href="https://cooperstansbury.github.io/EDA_r_ece579/index.html">https://cooperstansbury.github.io/EDA_r_ece579/index.html</a></p>
+<div id="project" class="section level2">
+<h2>Project</h2>
+<p>This repository was created as part of a class assignment.</p>
+</div>
+<div id="dev" class="section level2">
+<h2>Dev</h2>
+<div id="opening-the-files" class="section level4">
+<h4>Opening the Files</h4>
+<p>To open the project run the following line in Terminal (or whichever one you use).</p>
+<pre><code>rstudio EDA_r_ece579/EDA_r_ece579.Rproj</code></pre>
+<p>From inside RStudio you can navigate to different <code>.Rmd</code> files and re-run analysis.</p>
+</div>
+<div id="building-pages" class="section level4">
+<h4>Building Pages</h4>
+<p>From inside the project (assuming opened in RStudio):</p>
+<ul>
+<li>configure <code>Knit</code>:</li>
+</ul>
+<pre><code>knit: (
+  function(input_file, encoding) {
+      out_dir &lt;- &#39;docs&#39;;
+      rmarkdown::render(input_file,
+      encoding=encoding,
+      output_file=file.path(dirname(input_file), out_dir, &#39;index.html&#39;))
+      }
+    )</code></pre>
+<ul>
+<li>export each <code>.Rmd</code> file using <code>Knit</code> (<code>cmd+shift+k</code> on OSX).</li>
+<li>render the site using:</li>
+</ul>
+<pre><code>rmarkdown::render_site()</code></pre>
+<ul>
+<li>Push your changes. Note: <a href="_.site.yml"><code>_site.yml</code></a> is responsible for the configuration the website. I know it’s named wrong, long story…</li>
+</ul>
+</div>
+</div>
 </div>
 
 

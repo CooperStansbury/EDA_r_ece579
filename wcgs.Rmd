@@ -1,11 +1,13 @@
 ---
-title: "Western Collaborative Group Study R Nortebook"
+title: "Western Collaborative Group Study R Notebook"
 output:
   html_document:
     df_print: paged
 ---
 
-#Introduction
+# Introduction
+
+This document will not go into as much detail regarding descriptive statistics as the the 'Carseats' Notebook.
 
 ```{r, message=FALSE}
 library(leaps)
@@ -20,6 +22,8 @@ library(plotly)
 library(corrplot)
 library(htmltools)
 library(MASS)
+library(psych)
+library(mice)
 ```
 
 
@@ -31,10 +35,495 @@ sessionInfo()
 sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
 ```
 
-I load the data into `r`, and drop the "ID" column. Note, not actually a `csv` file, whoever named it must be messing with us.
+# Data
+
+I load the data into `r`. Note, not actually a `csv` file, whoever named it must be messing with us.
 
 ```{r}
 wcgs.raw <- read.csv("data/wcgs_org.csv", sep = " ")
-
 head(wcgs.raw, 10)
 ```
+
+## Missing Values
+Always check...
+
+```{r}
+sapply(wcgs.raw, function(x)all(is.na(x)))
+```
+
+For whatever reason, they're being sneaky...
+
+```{r}
+summary(wcgs.raw$chol)
+```
+
+### Median Imputation 
+
+Choosing method `pmm`: 'For each observation in a variable with missing value, we find observation (from available values)  with the closest predictive mean to that variable. The observed value from this “match” is then used as imputed value.'
+
+From: 
+
+[1]“Tutorial on 5 Powerful R Packages used for imputing missing values,” Analytics Vidhya, 04-Mar-2016. .
+
+
+```{r, message=FALSE}
+
+wcgs.raw.imp <- mice(wcgs.raw,m=5,maxit=50,meth='pmm',seed=500)
+summary(wcgs.raw.imp)
+```
+
+Let's save this bad boi back into a `data.frame`:
+
+```{r}
+wcgs.imp <- mice::complete(wcgs.raw.imp,1)
+
+# quick check
+str(wcgs.imp)
+dim(wcgs.imp)
+summary(wcgs.imp)
+```
+
+Note: dropping the logical datatypes. For now, we're going to assume that imputation 'solved' out problem. Very unwise....
+
+```{r}
+wcgs.nums <- dplyr::select_if(wcgs.imp, is.numeric)
+wcgs.cats <- dplyr::select_if(wcgs.imp, is.factor)
+
+print(paste('Number of Columns:', ncol(wcgs.imp)))
+print(paste('Number of Numeric Columns:', ncol(wcgs.nums)))
+print(paste('Number of Categorical Columns:', ncol(wcgs.cats)))
+```
+
+## Normalization and Preprocessing
+```{r}
+preObj <- preProcess(wcgs.nums, method=c("center", "scale"))
+wcgs.nums.scaled <- predict(preObj, wcgs.nums)
+
+summary(wcgs.nums.scaled)
+```
+
+## Merge the Data back together
+
+```{r}
+wcgs.scaled.merged <- cbind(wcgs.nums.scaled, wcgs.cats)
+head(wcgs.scaled.merged)
+```
+
+# Exploratory Data Analysis (Viz)
+
+## Numeric Distributions
+
+Either we have some outliers, or these distributions are pretty intense.
+
+```{r}
+wcgs.nums.scaled %>%
+    tidyr::gather() %>%
+        ggplot(aes(x=value,y=..density..))+
+
+            ggtitle('Distributions of Continous Variables (scaled)') +
+
+            facet_wrap(~ key, scales = "free") +
+            geom_histogram(fill=I("orange"), col=I("black"), bins = 50) +
+
+            facet_wrap(~ key, scales = "free") +
+            geom_density(color="blue", fill='light blue', alpha = 0.4)
+```
+
+```{r}
+wcgs.nums.scaled.w.chd <- cbind(wcgs.nums.scaled, wcgs.cats[3])
+names(wcgs.nums.scaled.w.chd)
+
+head(wcgs.nums.scaled.w.chd)
+```
+
+## Numeric Variabls vs Response (chd)
+
+It seems there are a few variables that may help us out. 
+
+```{r, message=FALSE}
+
+categorical.boxplots <- htmltools::tagList()
+count = 1
+
+for (i in names(wcgs.nums.scaled.w.chd[,-10])) {
+
+    categorical.boxplots[[count]] <- plot_ly(wcgs.nums.scaled.w.chd,
+                                             x=wcgs.nums.scaled.w.chd$chd,
+                                             y=wcgs.nums.scaled.w.chd[,i],
+                                             type = "box",
+                                             boxpoints = "all",
+                                             jitter = .2,
+                                             pointpos = 0,
+                                             color = wcgs.nums.scaled.w.chd$chd,
+                                             colors='Set2',
+                                             name=paste(i)) %>%
+                                                layout(title = paste(i, "vs chd (scaled)"),
+                                                      showlegend = TRUE,
+                                                      yaxis=list(title='chd Standard Deviation'),
+                                                      xaxis=list(title=i))
+
+  count = count + 1
+
+}
+
+categorical.boxplots
+```
+
+
+```{r}
+
+my_cols <- c("#00AFBB", "#E7B800", "#FC4E07")  
+pairs(wcgs.nums.scaled.w.chd[,-10], pch = 19,  cex = 0.5,
+      col = my_cols[wcgs.nums.scaled.w.chd$chd],
+      lower.panel=NULL)
+
+```
+
+
+```{r}
+pairs.panels(wcgs.nums.scaled.w.chd[,-10], 
+             method = "pearson", 
+             hist.col = "#00AFBB",
+             density = TRUE,  
+             ellipses = TRUE 
+             )
+```
+
+These are not very friendly. I will narrow down to the variables we will be modeling with later on. This doesn't tell me anything incredible helpful. I'll investigate a few down below.
+
+
+```{r}
+scatter.matrix <- htmltools::tagList()
+
+axis = list(showline=FALSE,
+            zeroline=FALSE,
+            gridcolor='#ffff',
+            ticklen=4)
+
+scatter.matrix[[1]] <-  plot_ly(wcgs.nums.scaled.w.chd, alpha = .5) %>%
+      add_trace(
+        type = 'splom',
+        dimensions = list(
+          list(label='height', values=~height),
+          list(label='weight', values=~weight),
+          list(label='sdp', values=~sdp),
+          list(label='dbp', values=~dbp),
+          list(label='chol', values=~chol),
+          list(label='cigs', values=~cigs)
+        ),
+        text=~chd,
+        marker = list(
+          color = as.integer(wcgs.nums.scaled.w.chd$chd),
+          colorscale = 'Set2',
+          size = 3,
+          line = list(
+            width = 1,
+            color = 'rgb(245,245,245)'
+          )
+        )
+      ) %>%
+      layout(
+        title= 'WCGS Scatterplot Matrix vs CHD (sligtly reduced)',
+        hovermode='closest',
+        dragmode= 'select',
+        hieght = 1700,
+        width=700,
+        plot_bgcolor='rgba(240,240,240, 0.95)',
+        xaxis=list(domain=NULL, showline=F, zeroline=F, gridcolor='#ffff', ticklen=4),
+        yaxis=list(domain=NULL, showline=F, zeroline=F, gridcolor='#ffff', ticklen=4),
+        xaxis2=axis,
+        xaxis3=axis,
+        xaxis4=axis,
+        yaxis2=axis,
+        yaxis3=axis,
+        yaxis4=axis
+  )
+
+scatter.matrix
+
+```
+
+```{r, message=FALSE}
+plot_ly(data=wcgs.nums.scaled.w.chd,
+        x=~sdp,
+        y=~height,
+        mode = 'markers',
+        colors = 'Set1',
+        type = 'scatter',
+        color=~chd) %>%
+            layout(title = "sdp, height vs chd Scatter Plot", 
+                   showlegend=TRUE,
+                   width=700)
+
+```
+
+There appears to be a cluster here.
+
+```{r, message=FALSE}
+plot_ly(data=wcgs.nums.scaled.w.chd,
+        x=~chol,
+        y=~height,
+        mode = 'markers',
+        colors = 'Accent',
+        type = 'scatter',
+        color=~chd) %>%
+            layout(title = "chol, height vs chd Scatter Plot", 
+                   showlegend=TRUE,
+                   width=700)
+
+```
+
+Now we're getting somewhere...
+
+```{r, message=FALSE}
+plot_ly(data=wcgs.nums.scaled.w.chd,
+        x=~chol,
+        y=~cigs,
+        mode = 'markers',
+        colors = 'Set3',
+        type = 'scatter',
+        color=~chd) %>%
+            layout(title = "chol, cigs vs chd Scatter Plot", 
+                   showlegend=TRUE,
+                   width=700)
+
+```
+
+# Logistic Regression
+
+Let's process this `data.frame` a little more. We'll keep only the variables that appear in our models.
+
+```{r}
+drop.list <- c('arcus', 'typechd', 'y', 'behave', 'dibep', 'timechd', 'weight', 'age')
+wcgs.scaled.merged.slim <- wcgs.scaled.merged[ , -which(names(wcgs.scaled.merged) %in% drop.list)]
+
+head(wcgs.scaled.merged.slim)
+```
+
+Next, we're going to convert this so that yes = 1 (for chd).
+
+```{r}
+wcgs.scaled.merged.slim$chd <- sapply(levels(wcgs.scaled.merged.slim$chd), function(x) as.integer(x == wcgs.scaled.merged.slim$chd))[,2]
+
+head(wcgs.scaled.merged.slim)
+```
+
+So how many of the samples are 'yes'? The answers is, not very many. Total we only have 257 'yes', which is not very many. We would expect that a classifier would tend towards predicting everything as the majority class (naively) unless it has stong predictors.
+
+```{r}
+sum(wcgs.scaled.merged.slim$chd)
+
+sum(wcgs.scaled.merged.slim$chd)/nrow(wcgs.scaled.merged.slim)
+```
+
+```{r}
+simple.logit <- glm(chd ~ cigs + height, data = wcgs.scaled.merged.slim, family = "binomial")
+simple.logit.summary <- summary(simple.logit)
+
+print(simple.logit.summary)
+```
+
+## Odds Ratios
+
+Here are a few statistics from the simple model.
+
+```{r}
+print(confint(simple.logit))
+print(exp(cbind(OR = coef(simple.logit), confint(simple.logit))))
+```
+
+This next little bit comes from:  
+
+[1]“Plotting your logistic regression models | R Club.” [Online]. Available: https://blogs.uoregon.edu/rclub/2016/04/05/plotting-your-logistic-regression-models/. [Accessed: 07-Mar-2019].
+
+
+```{r}
+print(coef(simple.logit))
+
+intercept <- simple.logit$coef[1] # intercept
+beta.cigs <- simple.logit$coef[2]
+beta.height <- -simple.logit$coef[3]
+```
+
+Notice, this never gets to .5 based on the values we have. This means, at the current threshold the model will never predict 'yes.' However, it moves towards it. Worth thinking about
+
+```{r}
+cigs_range <- seq(from=min(wcgs.scaled.merged.slim$cigs), to=max(wcgs.scaled.merged.slim$cigs), by=.01)
+mean.height <- mean(wcgs.scaled.merged.slim$height) 
+
+
+chd_logits <- intercept + 
+  beta.cigs*cigs_range + 
+  beta.height*mean.height
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(cigs_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="gold", 
+     xlab="cigs", ylab="(chd='yes')", main="simple.logit p(x) of 'yes' based on cigs; holding height constant")
+
+abline(h=.5, lty=2)
+```
+
+```{r}
+height_range <- seq(from=min(wcgs.scaled.merged.slim$height), to=max(wcgs.scaled.merged.slim$height), by=.01)
+mean.cigs <- mean(wcgs.scaled.merged.slim$cigs) 
+
+
+chd_logits <- intercept +
+  beta.cigs*mean.cigs + 
+  beta.height*height_range 
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(height_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="blue", 
+     xlab="height", ylab="(chd='yes')", main="simple.logit p(x) of 'yes' based on height; holding cigs constant")
+
+abline(h=.5, lty=2)
+```
+
+
+## Logit Round II
+Same as above, but with ( 'sdp', 'dbp' )
+
+```{r}
+simple.logit.2 <- glm(chd ~ cigs + height + sdp + dbp, data = wcgs.scaled.merged.slim, family = "binomial")
+simple.logit.2.summary <- summary(simple.logit.2)
+
+print(simple.logit.2.summary)
+
+print(confint(simple.logit.2))
+print(exp(coef(simple.logit.2)))
+print(exp(cbind(OR = coef(simple.logit.2), confint(simple.logit.2))))
+```
+
+```{r}
+print(coef(simple.logit.2))
+
+intercept <- simple.logit.2$coef[1] # intercept
+beta.cigs <- simple.logit.2$coef[2]
+beta.height <- -simple.logit.2$coef[3]
+beta.sdp <- -simple.logit.2$coef[4]
+beta.dbp <- -simple.logit.2$coef[5]
+```
+
+I'm only going tob look at cigs and sdp in the new model (those with large log odds).
+
+```{r}
+cigs_range <- seq(from=min(wcgs.scaled.merged.slim$cigs), to=max(wcgs.scaled.merged.slim$cigs), by=.01)
+mean.height <- mean(wcgs.scaled.merged.slim$height) 
+mean.sdp <- mean(wcgs.scaled.merged.slim$sdp) 
+mean.dbp <- mean(wcgs.scaled.merged.slim$dbp) 
+
+chd_logits <- intercept + 
+  beta.cigs*cigs_range + 
+  beta.height*mean.height + 
+  beta.sdp * mean.sdp +
+  beta.dbp * mean.dbp
+  
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(cigs_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="gold", 
+     xlab="cigs", ylab="(chd='yes')", main="simple.logit.2 p(x) of 'yes' on cigs; holding other vars constant")
+
+abline(h=.5, lty=2)
+```
+
+```{r}
+sdp_range <- seq(from=min(wcgs.scaled.merged.slim$sdp), to=max(wcgs.scaled.merged.slim$sdp), by=.01)
+mean.cigs <- mean(wcgs.scaled.merged.slim$cigs) 
+mean.height <- mean(wcgs.scaled.merged.slim$height) 
+mean.dbp <- mean(wcgs.scaled.merged.slim$dbp) 
+
+chd_logits <- intercept + 
+  beta.cigs*mean.cigs + 
+  beta.height*mean.height + 
+  beta.sdp * sdp_range +
+  beta.dbp * mean.dbp
+  
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(sdp_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="blue", 
+     xlab="sdp", ylab="(chd='yes')", main="simple.logit.2 p(x) of 'yes' on sdp; holding other vars constant")
+
+abline(h=.5, lty=2)
+```
+
+
+## Logistic Round III
+
+We use logistic regression to find the $p(x)$ of having heart disease ('chd'='yes') using 'sdp', 'dbp', and 'chol.'
+
+```{r}
+simple.logit.3 <- glm(chd ~ chol + sdp + dbp, data = wcgs.scaled.merged.slim, family = "binomial")
+simple.logit.3.summary <- summary(simple.logit.3)
+
+print(simple.logit.3.summary)
+
+print(confint(simple.logit.3))
+print(exp(coef(simple.logit.3)))
+print(exp(cbind(OR = coef(simple.logit.3), confint(simple.logit.3))))
+```
+
+
+```{r}
+print(coef(simple.logit.3))
+
+intercept <- simple.logit.3$coef[1] # intercept
+beta.chol <- simple.logit.3$coef[2]
+beta.sdp <- -simple.logit.3$coef[3]
+beta.dbp <- -simple.logit.3$coef[4]
+```
+
+Bingo! We have something worth considering. The likelihood (based on the model) of developing heart disease appears to be strongly influenced by chol. So eat well, or take your chances.
+
+```{r}
+chol_range <- seq(from=min(wcgs.scaled.merged.slim$chol), to=max(wcgs.scaled.merged.slim$chol), by=.01)
+mean.sdp <- mean(wcgs.scaled.merged.slim$sdp) 
+mean.dbp <- mean(wcgs.scaled.merged.slim$dbp) 
+
+chd_logits <- intercept + 
+  beta.chol*chol_range + 
+  beta.sdp*mean.sdp + 
+  beta.dbp * mean.dbp
+  
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(chol_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="red", 
+     xlab="chol", ylab="(chd='yes')", main="simple.logit.3 p(x) of 'yes' on chol; holding other vars constant")
+
+abline(h=.5, lty=2)
+```
+
+
+
+
+
+

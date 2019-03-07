@@ -131,7 +131,7 @@ plot_ly(data=carseats,
         mode = 'markers',
         type = 'scatter',
         color=~ShelveLoc) %>%
-            layout(title = "Age, Shelf Location, and Sales Scatter Plot", width=900)
+            layout(title = "Age, Shelf Location vs Sales Scatter Plot", width=900)
 ```
 
 This plot below shows good separation and a weak linear trend. These variables are worth investigating.
@@ -143,7 +143,7 @@ plot_ly(data=carseats,
         mode = 'markers',
         type = 'scatter',
         color=~ShelveLoc) %>%
-            layout(title = "Price, Shelf Location, and Sales Scatter Plot", width=900)
+            layout(title = "Price, Shelf Location vs Sales Scatter Plot", width=900)
 ```
 
 Here we inspect the density of the 'Price vs Sales' relationship:
@@ -157,7 +157,7 @@ plot_ly(data=carseats,
         type = 'scatter',
         colors = "Dark2",
         alpha = .6) %>%
-            layout(title = "Price, US, and Sales Scatter Plot", width=900)
+            layout(title = "Price, US vs Sales Scatter Plot", width=900)
 ```
 
 # Normalization
