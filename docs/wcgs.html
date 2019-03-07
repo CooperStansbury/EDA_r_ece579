@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title>Western Collaborative Group Study R Nortebook</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet" />
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Assignment 1</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="carseats.html">Carseats</a>
+</li>
+<li>
+  <a href="wcgs.html">wsgs</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Western Collaborative Group Study R Nortebook</h1>
+
+</div>
+
+
+<p><a href="https://resources.github.com/whitepapers/github-and-rstudio/" class="uri">https://resources.github.com/whitepapers/github-and-rstudio/</a></p>
+<p>#Introduction</p>
+<pre class="r"><code>library(leaps)
+library(stringr)
+library(caret)
+library(ggplot2)
+library(DataExplorer)
+library(dplyr)
+library(ggExtra)
+library(RColorBrewer)
+library(plotly)
+library(corrplot)
+library(htmltools)
+library(MASS)</code></pre>
+<div id="system-information" class="section level2">
+<h2>System Information</h2>
+<p>Due to the large number of libraries in use I have provided system information.</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>## R version 3.5.1 (2018-07-02)
+## Platform: x86_64-apple-darwin13.4.0 (64-bit)
+## Running under: macOS High Sierra 10.13.6
+## 
+## Matrix products: default
+## BLAS: /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib
+## LAPACK: /anaconda3/lib/R/lib/libRblas.dylib
+## 
+## locale:
+## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] e1071_1.7-0.1         mltools_0.3.5         forcats_0.3.0        
+##  [4] purrr_0.2.5           readr_1.3.1           tidyr_0.8.2          
+##  [7] tibble_2.0.1          tidyverse_1.2.1       mgcv_1.8-26          
+## [10] nlme_3.1-137          psych_1.8.12          GPArotation_2014.11-1
+## [13] MASS_7.3-51.1         htmltools_0.3.6       corrplot_0.84        
+## [16] plotly_4.8.0          RColorBrewer_1.1-2    ggExtra_0.8          
+## [19] dplyr_0.8.0.1         DataExplorer_0.7.0    caret_6.0-81         
+## [22] ggplot2_3.1.0         lattice_0.20-38       stringr_1.4.0        
+## [25] data.table_1.12.0     leaps_3.0            
+## 
+## loaded via a namespace (and not attached):
+##  [1] lubridate_1.7.4    httr_1.4.0         tools_3.5.1       
+##  [4] backports_1.1.3    R6_2.4.0           rpart_4.1-13      
+##  [7] lazyeval_0.2.1     colorspace_1.4-0   nnet_7.3-12       
+## [10] withr_2.1.2        tidyselect_0.2.5   gridExtra_2.3     
+## [13] mnormt_1.5-5       compiler_3.5.1     cli_1.0.1         
+## [16] rvest_0.3.2        xml2_1.2.0         labeling_0.3      
+## [19] scales_1.0.0       digest_0.6.18      foreign_0.8-71    
+## [22] rmarkdown_1.11     pkgconfig_2.0.2    htmlwidgets_1.3   
+## [25] rlang_0.3.1        readxl_1.3.0       rstudioapi_0.9.0  
+## [28] shiny_1.2.0        generics_0.0.2     jsonlite_1.6      
+## [31] crosstalk_1.0.0    ModelMetrics_1.1.0 magrittr_1.5      
+## [34] Matrix_1.2-15      Rcpp_1.0.0         munsell_0.5.0     
+## [37] stringi_1.3.1      yaml_2.2.0         plyr_1.8.4        
+## [40] recipes_0.1.4      grid_3.5.1         parallel_3.5.1    
+## [43] promises_1.0.1     crayon_1.3.4       miniUI_0.1.1.1    
+## [46] haven_2.0.0        splines_3.5.1      hms_0.4.2         
+## [49] knitr_1.21         pillar_1.3.1       igraph_1.2.4      
+## [52] reshape2_1.4.3     codetools_0.2-16   stats4_3.5.1      
+## [55] glue_1.3.0         evaluate_0.12      modelr_0.1.3      
+## [58] httpuv_1.4.5.1     foreach_1.4.4      networkD3_0.4     
+## [61] cellranger_1.1.0   gtable_0.2.0       assertthat_0.2.0  
+## [64] xfun_0.4           gower_0.1.2        mime_0.6          
+## [67] prodlim_2018.04.18 xtable_1.8-3       broom_0.5.1       
+## [70] later_0.8.0        rsconnect_0.8.13   class_7.3-15      
+## [73] survival_2.43-3    viridisLite_0.3.0  timeDate_3043.102 
+## [76] iterators_1.0.10   lava_1.6.5         ipred_0.9-8</code></pre>
+<pre class="r"><code>sapply(c(&#39;repr&#39;, &#39;IRdisplay&#39;, &#39;IRkernel&#39;), function(p) paste(packageVersion(p)))</code></pre>
+<pre><code>##      repr IRdisplay  IRkernel 
+##  &quot;0.19.2&quot;   &quot;0.7.0&quot;  &quot;0.8.15&quot;</code></pre>
+<p>I load the data into <code>r</code>, and drop the “ID” column. Note, not actually a <code>csv</code> file, whoever named it must be messing with us.</p>
+<pre class="r"><code>wcgs.raw &lt;- read.csv(&quot;data/wcgs_org.csv&quot;, sep = &quot; &quot;)
+
+head(wcgs.raw, 10)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["age"],"name":[1],"type":["int"],"align":["right"]},{"label":["height"],"name":[2],"type":["int"],"align":["right"]},{"label":["weight"],"name":[3],"type":["int"],"align":["right"]},{"label":["sdp"],"name":[4],"type":["int"],"align":["right"]},{"label":["dbp"],"name":[5],"type":["int"],"align":["right"]},{"label":["chol"],"name":[6],"type":["int"],"align":["right"]},{"label":["behave"],"name":[7],"type":["fctr"],"align":["left"]},{"label":["cigs"],"name":[8],"type":["int"],"align":["right"]},{"label":["dibep"],"name":[9],"type":["fctr"],"align":["left"]},{"label":["chd"],"name":[10],"type":["fctr"],"align":["left"]},{"label":["typechd"],"name":[11],"type":["fctr"],"align":["left"]},{"label":["timechd"],"name":[12],"type":["int"],"align":["right"]},{"label":["arcus"],"name":[13],"type":["fctr"],"align":["left"]},{"label":["y"],"name":[14],"type":["int"],"align":["right"]}],"data":[{"1":"49","2":"73","3":"150","4":"110","5":"76","6":"225","7":"A2","8":"25","9":"B","10":"no","11":"none","12":"1664","13":"absent","14":"0","_rn_":"2001"},{"1":"42","2":"70","3":"160","4":"154","5":"84","6":"177","7":"A2","8":"20","9":"B","10":"no","11":"none","12":"3071","13":"present","14":"0","_rn_":"2002"},{"1":"42","2":"69","3":"160","4":"110","5":"78","6":"181","7":"B3","8":"0","9":"A","10":"no","11":"none","12":"3071","13":"absent","14":"0","_rn_":"2003"},{"1":"41","2":"68","3":"152","4":"124","5":"78","6":"132","7":"B4","8":"20","9":"A","10":"no","11":"none","12":"3064","13":"absent","14":"0","_rn_":"2004"},{"1":"59","2":"70","3":"150","4":"144","5":"86","6":"255","7":"B3","8":"20","9":"A","10":"yes","11":"infdeath","12":"1885","13":"present","14":"1","_rn_":"2005"},{"1":"44","2":"72","3":"204","4":"150","5":"90","6":"182","7":"B4","8":"0","9":"A","10":"no","11":"none","12":"3102","13":"absent","14":"0","_rn_":"2006"},{"1":"44","2":"72","3":"164","4":"130","5":"84","6":"155","7":"B4","8":"0","9":"A","10":"no","11":"none","12":"3074","13":"absent","14":"0","_rn_":"2007"},{"1":"40","2":"71","3":"150","4":"138","5":"60","6":"140","7":"A2","8":"0","9":"B","10":"no","11":"none","12":"3071","13":"absent","14":"0","_rn_":"2008"},{"1":"43","2":"72","3":"190","4":"146","5":"76","6":"149","7":"B3","8":"25","9":"A","10":"no","11":"none","12":"3064","13":"absent","14":"0","_rn_":"2009"},{"1":"42","2":"70","3":"175","4":"132","5":"90","6":"325","7":"A2","8":"0","9":"B","10":"no","11":"none","12":"1032","13":"present","14":"0","_rn_":"2010"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

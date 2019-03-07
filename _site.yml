@@ -7,3 +7,5 @@ navbar:
       href: index.html
     - text: "Carseats"
       href: carseats.html
+    - text: "wsgs"
+      href: wcgs.html

@@ -1,6 +1,8 @@
 ---
 title: "Western Collaborative Group Study R Nortebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
 
 https://resources.github.com/whitepapers/github-and-rstudio/
