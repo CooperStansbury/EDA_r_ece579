@@ -27,7 +27,6 @@ library(psych)
 library(mgcv)
 library(tidyverse)
 library(mltools)
-library(e1071)
 ```
 
 ## System Information
