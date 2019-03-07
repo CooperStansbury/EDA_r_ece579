@@ -1,0 +1,9 @@
+name: "Assignment 1"
+output_dir: "docs"
+navbar:
+  title: "Assignment 1"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Carseats"
+      href: carseats.html
