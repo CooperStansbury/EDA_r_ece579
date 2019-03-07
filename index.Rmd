@@ -1,0 +1,7 @@
+---
+title: "index"
+author: "Cooper Stansbury"
+date: "3/6/2019"
+output: html_document
+---
+# Welcome Page

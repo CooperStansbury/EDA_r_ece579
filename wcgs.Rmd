@@ -1,0 +1,40 @@
+---
+title: "Western Collaborative Group Study R Nortebook"
+output: html_notebook
+---
+
+https://resources.github.com/whitepapers/github-and-rstudio/
+
+#Introduction
+
+```{r}
+library(leaps)
+library(stringr)
+library(caret)
+library(ggplot2)
+library(DataExplorer)
+library(dplyr)
+library(ggExtra)
+library(RColorBrewer)
+library(plotly)
+library(corrplot)
+library(htmltools)
+library(MASS)
+```
+
+
+## System Information
+Due to the large number of libraries in use I have provided system information.
+
+```{r}
+sessionInfo()
+sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
+```
+
+I load the data into `r`, and drop the "ID" column. Note, not actually a `csv` file, whoever named it must be messing with us.
+
+```{r}
+wcgs.raw <- read.csv("data/wcgs_org.csv", sep = " ")
+
+head(wcgs.raw, 10)
+```
