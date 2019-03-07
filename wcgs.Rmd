@@ -5,11 +5,9 @@ output:
     df_print: paged
 ---
 
-https://resources.github.com/whitepapers/github-and-rstudio/
-
 #Introduction
 
-```{r}
+```{r, message=FALSE}
 library(leaps)
 library(stringr)
 library(caret)

@@ -4,3 +4,10 @@ output: html_document
 ---
 
 This is assignment 1 for ECE579. If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/).
+
+## Citations
+1. M. Clark, A workshop on latent variables models including factor analysis, PCA, SEM, etc.: m-clark/latent-variable-models-workshop-2019. 2019.
+1. “Creating websites in R.” [Online]. Available: https://www.emilyzabor.com/tutorials/rmarkdown_websites_tutorial.html. [Accessed: 07-Mar-2019].
+1. “GitHub and RStudio | GitHub Resources.” [Online]. Available: https://resources.github.com/whitepapers/github-and-rstudio/. [Accessed: 07-Mar-2019].
+1. “Markdown Basics.” [Online]. Available: https://rmarkdown.rstudio.com/authoring_basics.html. [Accessed: 07-Mar-2019].
+1. “plotly.” [Online]. Available: https://plot.ly/r/. [Accessed: 07-Mar-2019].
