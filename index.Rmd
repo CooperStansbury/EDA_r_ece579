@@ -11,7 +11,14 @@ This is assignment 1 for ECE579 (w2019). This is my first significant project wi
 
 If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/).
 
-## Assignment:
+## Links
+Here are the important links:
+- Website: [https://cooperstansbury.github.io/EDA_r_ece579/index.html](https://cooperstansbury.github.io/EDA_r_ece579/index.html)
+- GitHub repository: [https://github.com/CooperStansbury/EDA_r_ece579](https://github.com/CooperStansbury/EDA_r_ece579)
+- Car Seats Analysis: [https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/carseats.Rmd](https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/carseats.Rmd)
+- Western Collaborative Group Study Analysis: [https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/wcgs.Rmd](https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/wcgs.Rmd)
+
+## Overview
 
 "The overall objective of this assignment is to develop the core techniques that can be used to examine a basic data set, including scatter plots, and basic linear and logistic regression."
 
