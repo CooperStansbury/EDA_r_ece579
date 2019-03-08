@@ -1,11 +1,11 @@
-name: "Assignment 1"
+name: "ECE 579 Assignment 1"
 output_dir: "docs"
 navbar:
   title: "Assignment 1"
   left:
     - text: "Home"
       href: index.html
-    - text: "Carseats"
+    - text: "Car Seats Analysis"
       href: carseats.html
-    - text: "Western Collaborative Group Study"
+    - text: "Western Collaborative Group Study Analysis"
       href: wcgs.html
