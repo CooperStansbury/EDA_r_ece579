@@ -11,7 +11,7 @@
 
 
 
-<title>README.utf8.md</title>
+<title>dev.utf8.md</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -303,12 +303,36 @@ $(document).ready(function () {
 </div>
 
 
-<div id="ece579" class="section level1">
-<h1>ECE579</h1>
-<p>Here are the important links: - Website: <a href="https://cooperstansbury.github.io/EDA_r_ece579/index.html">https://cooperstansbury.github.io/EDA_r_ece579/index.html</a> - GitHub repository: <a href="https://github.com/CooperStansbury/EDA_r_ece579">https://github.com/CooperStansbury/EDA_r_ece579</a> - Car Seats Analysis: <a href="https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/carseats.Rmd">https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/carseats.Rmd</a> - Western Collaborative Group Study Analysis: <a href="https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/wcgs.Rmd">https://raw.githubusercontent.com/CooperStansbury/EDA_r_ece579/master/wcgs.Rmd</a></p>
-<div id="developer-notes" class="section level2">
-<h2>Developer Notes</h2>
-<p><a href="dev.md">Developer Notes</a></p>
+<div id="dev" class="section level1">
+<h1>Dev</h1>
+<div id="opening-the-rmd-files" class="section level2">
+<h2>Opening the Rmd Files</h2>
+<p>To open the project run the following line in Terminal (or whichever one you use).</p>
+<pre><code>rstudio EDA_r_ece579/EDA_r_ece579.Rproj</code></pre>
+<p>From inside RStudio you can navigate to different <code>.Rmd</code> files and re-run analysis or modify the code to get something different.</p>
+</div>
+<div id="building-pages" class="section level2">
+<h2>Building Pages</h2>
+<p>From inside the project (assuming opened in RStudio), open a notebook. During development of the notebook you need to run the following lines to configure <code>knit</code> to point .<code>html</code> output into the <a href="docs/"><code>docs</code></a> folder. Doing this will configure the <code>render_site</code> command to build each notebook and the index for GitHub pages. This needs to be done for all notebooks whose output is to appear in GitHub pages.</p>
+<ul>
+<li>configure <code>Knit</code>:</li>
+</ul>
+<pre><code>knit: (
+  function(input_file, encoding) {
+      out_dir &lt;- &#39;docs&#39;;
+      rmarkdown::render(input_file,
+      encoding=encoding,
+      output_file=file.path(dirname(input_file), out_dir, &#39;index.html&#39;))
+      }
+    )</code></pre>
+<ul>
+<li>export each <code>.Rmd</code> file using <code>Knit</code> (<code>cmd+shift+k</code> on OSX).</li>
+<li>render the site using the command below. Note: this only needs to be done once per ‘release’.</li>
+</ul>
+<pre><code>rmarkdown::render_site()</code></pre>
+<ul>
+<li>Push your changes. Note: <a href="_site.yml"><code>_site.yml</code></a> is responsible for the configuration the website. Just pushing a notebook is not enough for the page to render to GitHub pages. I know it’s named wrong, long story…</li>
+</ul>
 </div>
 </div>
 
