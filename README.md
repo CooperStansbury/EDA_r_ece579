@@ -31,10 +31,11 @@ knit: (
     )
 ```
 - export each `.Rmd` file using `Knit` (`cmd+shift+k` on OSX).
-- render the site using:
+- render the site using the command below. Note: this only needs to be done once per 'release'.
 
 ```
 rmarkdown::render_site()
 ```
+
 
 - Push your changes. Note: [`_site.yml`](_site.yml) is responsible for the configuration the website. Just pushing a notebook is not enough for the page to render to GitHub pages. I know it's named wrong, long story...
