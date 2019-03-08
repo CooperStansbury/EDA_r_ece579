@@ -7,18 +7,17 @@ This is the working directory for the website found here:
 This repository was created as part of a class assignment.
 
 ## Dev
-
-#### Opening the Files
+#### Opening the Rmd Files
 To open the project run the following line in Terminal (or whichever one you use).
 
 ```
 rstudio EDA_r_ece579/EDA_r_ece579.Rproj
 ```
 
-From inside RStudio you can navigate to different `.Rmd` files and re-run analysis.
+From inside RStudio you can navigate to different `.Rmd` files and re-run analysis or modify the code to get something different.
 
 #### Building Pages
-From inside the project (assuming opened in RStudio):
+From inside the project (assuming opened in RStudio), open a notebook. During development of the notebook you need to run the following lines to configure `knit` to point .`html` output into the [`docs`](docs/) folder. Doing this will configure the `render_site` command to build each notebook and the index for GitHub pages. This needs to be done for all notebooks whose output is  to appear in GitHub pages.
 
 - configure `Knit`:
 ```
@@ -38,4 +37,4 @@ knit: (
 rmarkdown::render_site()
 ```
 
-- Push your changes. Note: [`_site.yml`](_.site.yml) is responsible for the configuration the website. I know it's named wrong, long story...
+- Push your changes. Note: [`_site.yml`](_site.yml) is responsible for the configuration the website. Just pushing a notebook is not enough for the page to render to GitHub pages. I know it's named wrong, long story...

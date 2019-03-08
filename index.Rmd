@@ -3,7 +3,17 @@ title: "Assignment 1"
 output: html_document
 ---
 
-This is assignment 1 for ECE579 (w2019). If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/).
+This is assignment 1 for ECE579 (w2019). This is my first significant project with the following technologies:
+
+- R Notebooks
+- GitHub Pages
+- Plotly
+
+If you are a student, please be sure to read the [Univerisity of Michigan Code of Conduct](http://catalog.umd.umich.edu/undergraduate/academic-policies/academic-code-conduct/).
+
+## Assignment:
+
+"The overall objective of this assignment is to develop the core techniques that can be used to examine a basic data set, including scatter plots, and basic linear and logistic regression."
 
 ## Citations
 

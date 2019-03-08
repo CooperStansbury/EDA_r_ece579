@@ -37,7 +37,17 @@ sapply(c('repr', 'IRdisplay', 'IRkernel'), function(p) paste(packageVersion(p)))
 
 # Data
 
-I load the data into `r`. Note, not actually a `csv` file, whoever named it must be messing with us.
+The raw data looks like this (via `head -n 5 data/wcgs_org.csv `):
+
+```
+"age" "height" "weight" "sdp" "dbp" "chol" "behave" "cigs" "dibep" "chd" "typechd" "timechd" "arcus" "y"
+"2001" 49 73 150 110 76 225 "A2" 25 "B" "no" "none" 1664 "absent" 0
+"2002" 42 70 160 154 84 177 "A2" 20 "B" "no" "none" 3071 "present" 0
+"2003" 42 69 160 110 78 181 "B3" 0 "A" "no" "none" 3071 "absent" 0
+"2004" 41 68 152 124 78 132 "B4" 20 "A" "no" "none" 3064 "absent" 0
+```
+
+I load the data into `r`. Note, not actually a `.csv` file, whoever named it must be messing with us. 
 
 ```{r}
 wcgs.raw <- read.csv("data/wcgs_org.csv", sep = " ")
@@ -46,6 +56,8 @@ head(wcgs.raw, 10)
 
 ## Missing Values
 Always check...
+
+Notice how this *doesn't* catch them.
 
 ```{r}
 sapply(wcgs.raw, function(x)all(is.na(x)))
@@ -67,7 +79,6 @@ From:
 
 
 ```{r, message=FALSE}
-
 wcgs.raw.imp <- mice(wcgs.raw,m=5,maxit=50,meth='pmm',seed=500)
 summary(wcgs.raw.imp)
 ```
@@ -83,7 +94,7 @@ dim(wcgs.imp)
 summary(wcgs.imp)
 ```
 
-Note: dropping the logical datatypes. For now, we're going to assume that imputation 'solved' out problem. Very unwise....
+Note: dropping the logical datatypes. For now, we're going to assume that imputation 'solved' out problem. Very unwise, I know.
 
 ```{r}
 wcgs.nums <- dplyr::select_if(wcgs.imp, is.numeric)
@@ -205,7 +216,6 @@ scatter.matrix[[1]] <-  plot_ly(wcgs.nums.scaled.w.chd, alpha = .5) %>%
         type = 'splom',
         dimensions = list(
           list(label='height', values=~height),
-          list(label='weight', values=~weight),
           list(label='sdp', values=~sdp),
           list(label='dbp', values=~dbp),
           list(label='chol', values=~chol),
@@ -308,7 +318,7 @@ wcgs.scaled.merged.slim$chd <- sapply(levels(wcgs.scaled.merged.slim$chd), funct
 head(wcgs.scaled.merged.slim)
 ```
 
-So how many of the samples are 'yes'? The answers is, not very many. Total we only have 257 'yes', which is not very many. We would expect that a classifier would tend towards predicting everything as the majority class (naively) unless it has stong predictors.
+So how many of the samples are 'yes'? The answers is, not very many. Total we only have 257 'yes', which is not very many. We would expect that a classifier would tend towards predicting everything as the majority class (naively) unless it has strong predictors.
 
 ```{r}
 sum(wcgs.scaled.merged.slim$chd)
@@ -416,7 +426,7 @@ beta.sdp <- -simple.logit.2$coef[4]
 beta.dbp <- -simple.logit.2$coef[5]
 ```
 
-I'm only going tob look at cigs and sdp in the new model (those with large log odds).
+I'm only going to look at cigs and sdp in the new model (those with large log odds).
 
 ```{r}
 cigs_range <- seq(from=min(wcgs.scaled.merged.slim$cigs), to=max(wcgs.scaled.merged.slim$cigs), by=.01)
@@ -524,6 +534,52 @@ abline(h=.5, lty=2)
 
 
 
+
+```{r}
+m.gam <- gam(chd ~ te(chol + sdp + dbp), 
+             data = wcgs.scaled.merged.slim, family = "binomial")
+
+gam.sum <- summary(m.gam)
+gam.sum
+```
+
+```{r}
+print(coef(m.gam))
+print(exp(coef(m.gam)))
+```
+
+```{r}
+
+intercept <- m.gam$coef[1] # intercept
+beta.chol <- m.gam$coef[2]
+beta.sdp <- -m.gam$coef[3]
+beta.dbp <- -m.gam$coef[4]
+
+chol_range <- seq(from=min(wcgs.scaled.merged.slim$chol), to=max(wcgs.scaled.merged.slim$chol), by=.01)
+mean.sdp <- mean(wcgs.scaled.merged.slim$sdp) 
+mean.dbp <- mean(wcgs.scaled.merged.slim$dbp) 
+
+chd_logits <- intercept + 
+  beta.chol*chol_range + 
+  beta.sdp*mean.sdp + 
+  beta.dbp * mean.dbp
+  
+
+chd_probs <- exp(chd_logits)/(1 + exp(chd_logits))
+
+plot(chol_range, chd_probs, 
+     ylim=c(0,1),
+     type="l", 
+     lwd=3, 
+     lty=2, 
+     col="red", 
+     xlab="chol", ylab="(chd='yes')", main="m.gam p(x) of 'yes' on chol; holding other vars constant")
+
+abline(h=.5, lty=2)
+```
+
+# Conclusions
+The variable 'chol', which represents measurements of 'Fasting serum cholesterol in mm %' is most significant in $p(chd='yes')$ calculations via logistic regression. The `glm()` method stresses this relationship even more than a related `gam()` logistic regression model. Though both models lead me to believe that serum levels are associated with higher risk of heart disease. Though many other variables may increase the risk of heart disease, only the variable 'chol' leads the logistic regression models to predict chd=1.
 
 
 
